@@ -1,0 +1,1508 @@
+openapi: 3.0.3
+info:
+  title: 소상톡톡 관리자 API
+  version: 0.0.1
+servers:
+  - url: https://sotalk.example.com/api/v1/admin
+tags:
+  - name: 회원가입
+  - name: 회원 관리
+  - name: 게시글 관리
+  - name: 컨텐츠 관리
+  - name: 기타
+  - name: 콤보
+
+paths:
+  /register/admin:
+    post:
+      tags:
+        - 회원가입
+      summary: 관리자 회원가입
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "test@example.com"
+                password:
+                  type: string
+                  example: "test1234!"
+                confirmPassword:
+                  type: string
+                  example: "test1234!"
+                agreedService:
+                  type: boolean
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+        400:
+          $ref: '#/components/responses/Unauthorized'
+  /user:
+    get:
+      tags:
+        - 회원 관리
+      summary: 목록
+      parameters:
+        - name: page
+          in: query
+          description: 현재 페이지
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 페이지 당 표시 갯수
+          required: true
+          schema:
+            type: integer
+        - name: approved
+          in: query
+          description: 승인 여부
+          schema:
+            type: boolean
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: |
+            검색어
+            - 이메일
+            - 사업 종류
+            - 지역
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+
+    delete:
+      tags:
+        - 회원 관리
+      summary: 일괄 삭제
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: integer
+                    example: 1
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /user/approval:
+    patch:
+      tags:
+        - 회원 관리
+      summary: 일괄 승인
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: integer
+                    example: 1
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+
+  /user/{userId}:
+    get:
+      tags:
+        - 회원 관리
+      summary: 상세
+      parameters:
+        - name: userId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDetail"
+    put:
+      tags:
+        - 회원 관리
+      summary: 수정
+      parameters:
+        - name: userId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                approved:
+                  type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    example: 1
+
+  /board:
+    get:
+      tags:
+        - 게시글 관리
+      summary: 게시글 목록
+      parameters:
+        - name: boardType
+          in: query
+          description: 게시판 구분
+          schema:
+            $ref: '#/components/schemas/BoardType'
+        - name: page
+          in: query
+          description: 현재 페이지
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 페이지 당 표시 갯수
+          required: true
+          schema:
+            type: integer
+        - name: hidden
+          in: query
+          description: 숨겨진 게시글 필터링
+          schema:
+            type: boolean
+        - name: deleted
+          in: query
+          description: 삭제된 게시글 필터링
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: |
+            정렬 기준
+            - view
+            - like
+            - createdAt
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: |
+            검색어
+            - 제목
+            - 내용
+            - 닉네임
+
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardList'
+    post:
+      tags:
+        - 게시글 관리
+      summary: 게시글 등록
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                boardType:
+                  $ref: '#/components/schemas/BoardType'
+                title:
+                  type: string
+                  example: "정부 사업 정리..."
+                content:
+                  type: string
+                  example: "2025년 지원금..."
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  boardId:
+                    type: integer
+                    example: 1
+
+    delete:
+      tags:
+        - 게시글 관리
+      summary: 게시글 일괄 삭제
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                boardIds:
+                  type: array
+                  items:
+                    type: integer
+                    example: 1
+
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /board/{boardId}:
+    get:
+      tags:
+        - 게시글 관리
+      summary: 게시글 상세
+      parameters:
+        - name: boardId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardDetail'
+
+    put:
+      tags:
+        - 게시글 관리
+      summary: 게시글 수정
+      parameters:
+        - name: boardId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                boardType:
+                  $ref: '#/components/schemas/BoardType'
+                title:
+                  type: string
+                  example: "익명의 소톡 모여라~"
+                content:
+                  type: string
+                  example: "고민들을 댓글로 적어주세요~"
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                deleteFileIds:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  boardId:
+                    type: integer
+                    example: 1
+    delete:
+      tags:
+        - 게시글 관리
+      summary: 게시글 삭제
+      parameters:
+        - name: boardId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /board/best:
+    get:
+      tags:
+        - 컨텐츠 관리
+      summary: 인기글 목록
+      parameters:
+        - name: pin
+          in: query
+          description: 고정게시글 여부
+          required: false
+          schema:
+            type: boolean
+            example: false
+        - name: page
+          in: query
+          description: 현재 페이지
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 페이지 당 표시 갯수
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              examples:
+                empty:
+                  value:
+                    totalCount: 0
+                    bestSize: 5
+                    contents: [ ]
+                two:
+                  value:
+                    totalCount: 2
+                    bestSize: 5
+                    contents:
+                      - boardId: 1
+                        rank: 0
+                        title: "사업하는거 너무 힘드네요"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 45
+                        viewCount: 1251
+                        commentsCount: 189
+                        claimCount: 0
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: true
+                      - boardId: 2
+                        rank: 1
+                        title: "장사라는거 어떻게 시작하죠?"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 43
+                        viewCount: 800
+                        commentsCount: 21
+                        claimCount: 0
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: false
+                many:
+                  value:
+                    totalCount: 5
+                    bestSize: 5
+                    contents:
+                      - boardId: 1
+                        rank: 0
+                        title: "사업하는거 너무 힘드네요"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 45
+                        viewCount: 1251
+                        commentsCount: 189
+                        claimCount: 0
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: true
+                      - boardId: 2
+                        rank: 1
+                        title: "장사라는거 어떻게 시작하죠?"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 43
+                        viewCount: 800
+                        commentsCount: 21
+                        claimCount: 0
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: false
+                      - boardId: 3
+                        rank: 2
+                        title: "사업자 대출 진행 방법"
+                        boardTypeName: "사업톡톡"
+                        likesCount: 20
+                        viewCount: 502
+                        commentsCount: 13
+                        claimCount: 1
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: false
+                      - boardId: 4
+                        rank: 3
+                        title: "사업하는거 너무 힘드네요"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 15
+                        viewCount: 501
+                        commentsCount: 11
+                        claimCount: 2
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: false
+                      - boardId: 5
+                        rank: 4
+                        title: "사업하는거 너무 힘드네요"
+                        boardTypeName: "소상톡톡"
+                        likesCount: 5
+                        viewCount: 51
+                        commentsCount: 5
+                        claimCount: 0
+                        createdAt: "2024-11-19 18:45:00"
+                        nickname: "익명의소통"
+                        hidden: false
+                        pin: false
+
+  /board/best/config:
+    get:
+      tags:
+        - 컨텐츠 관리
+      summary: 인기글 개수 설정 목록
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  bestConfigs:
+                    - bestSize: 3
+                      active: false
+                    - bestSize: 5
+                      active: false
+                    - bestSize: 10
+                      active: true
+                    - bestSize: 15
+                      active: false
+                    - bestSize: 20
+                      active: false
+    put:
+      tags:
+        - 컨텐츠 관리
+      summary: 인기글 개수 설정
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bestSize:
+                  type: integer
+                  example: 10
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /board/{boardId}/pin:
+    post:
+      tags:
+        - 컨텐츠 관리
+      summary: 고정 등록
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+    delete:
+      tags:
+        - 컨텐츠 관리
+      summary: 고정 해제
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /comment:
+    get:
+      tags:
+        - 게시글 관리
+      summary: 댓글 목록
+      parameters:
+        - name: boardType
+          in: query
+          description: 게시판 구분
+          required: false
+          schema:
+            $ref: '#/components/schemas/BoardType'
+        - name: page
+          in: query
+          description: 현재 페이지
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 페이지 당 표시 갯수
+          required: true
+          schema:
+            type: integer
+        - name: hidden
+          in: query
+          description: 숨겨진 게시글 필터링
+          schema:
+            type: boolean
+        - name: deleted
+          in: query
+          description: 삭제된 게시글 필터링
+          schema:
+            type: boolean
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: |
+            검색어
+            - 내용
+            - 닉네임
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentList"
+
+    delete:
+      tags:
+        - 게시글 관리
+      summary: 댓글 일괄 삭제
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commentIds:
+                  type: array
+                  items:
+                    type: integer
+                    example: 1
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+    post:
+      tags:
+        - 게시글 관리
+      summary: 댓글 작성
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                boardId:
+                  type: integer
+                  example: 1
+                parentCommentId:
+                  type: integer
+                  description: "대댓글 작성 시 필요"
+                  example: 15
+                content:
+                  type: string
+                  example: '관리자가 작성한 댓글...'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commentId:
+                    type: integer
+                    example: 1
+
+  /comment/{commentId}:
+    delete:
+      tags:
+        - 게시글 관리
+      summary: 댓글 삭제
+      parameters:
+        - name: commentId
+          in: path
+          description: 상세 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /event:
+    get:
+      tags:
+        - 컨텐츠 관리
+      summary: 베너/이벤트 목록
+      parameters:
+        - name: active
+          in: query
+          description: 사용 여부
+          required: false
+          schema:
+            type: boolean
+            example: false
+        - name: page
+          in: query
+          description: 현재 페이지
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 페이지 당 표시 갯수
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              examples:
+                empty:
+                  value:
+                    totalCount: 0
+                    contents: [ ]
+                two:
+                  value:
+                    totalCount: 2
+                    contents:
+                      - eventId: 1
+                        title: "새로워진 업데이트 내용"
+                        eventTypeName: "팝업"
+                        always: false
+                        startAt: "2024-11-19 12:00:00"
+                        endAt: "2024-11-25 22:00:00"
+                        duration: 72
+                        screenTypeName: "게시판(홈)"
+                        active: true
+                      - eventId: 2
+                        title: "소톡은 처음이신가요?"
+                        always: false
+                        eventTypeName: "롤링배너"
+                        startAt: "2024-11-19 12:00:00"
+                        endAt: "2024-11-19 17:00:00"
+                        duration: 3
+                        screenTypeName: "마이페이지"
+                        active: false
+                many:
+                  value:
+                    totalCount: 5
+                    contents:
+                      - eventId: 1
+                        title: "새로워진 업데이트 내용"
+                        eventTypeName: "팝업"
+                        always: false
+                        startAt: "2024-11-19 12:00:00"
+                        endAt: "2024-11-25 22:00:00"
+                        duration: 72
+                        screenTypeName: "게시판(홈)"
+                        active: true
+                      - eventId: 2
+                        title: "소톡은 처음이신가요?"
+                        eventTypeName: "롤링배너"
+                        always: false
+                        startAt: "2024-11-19 12:00:00"
+                        endAt: "2024-11-19 17:00:00"
+                        duration: 3
+                        screenTypeName: "마이페이지"
+                        active: false
+                      - eventId: 3
+                        title: "소톡은 처음이신가요?"
+                        eventTypeName: "롤링배너"
+                        always: true
+                        startAt: "0001-01-01 00:00:00"
+                        endAt: "2099-01-01 01:00:00"
+                        duration: 3
+                        screenTypeName: "게시판(홈)"
+                        active: false
+                      - eventId: 4
+                        title: "신규 생성된 멤버십제도 안내"
+                        eventTypeName: "롤링배너"
+                        always: true
+                        startAt: "0001-01-01 00:00:00"
+                        endAt: "2099-01-01 01:00:00"
+                        duration: 3
+                        screenTypeName: "게시판(홈)"
+                        active: false
+                      - eventId: 5
+                        title: "신고 제재 관련 안내문"
+                        eventTypeName: "팝업"
+                        always: true
+                        startAt: "0001-01-01 00:00:00"
+                        endAt: "2099-01-01 01:00:00"
+                        duration: 3
+                        screenTypeName: "메세지 목록"
+                        active: false
+    post:
+      tags:
+        - 컨텐츠 관리
+      summary: 베너/이벤트 등록
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "소톡은 처음이지?"
+                screenType:
+                  $ref: '#/components/schemas/ScreenType'
+                eventType:
+                  $ref: '#/components/schemas/EventType'
+                link:
+                  example: https://www.naver.com
+                always:
+                  type: boolean
+                  example: false
+                startAt:
+                  type: string
+                  example: "2024-11-19 12:00:00"
+                endAt:
+                  type: string
+                  example: "2024-11-20 23:59:59"
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                active:
+                  type: boolean
+                  example: true
+                content:
+                  type: string
+                  example: 처음 이용하는 선생님들을 위해 소톡 앱소개와 이용법을 알려줄게!
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventId:
+                    type: integer
+                    example: 1
+
+  /event/{eventId}:
+    get:
+      tags:
+        - 컨텐츠 관리
+      summary: 베너/이벤트 상세
+      parameters:
+        - name: eventId
+          in: path
+          description: 베너/이벤트 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetail'
+    put:
+      tags:
+        - 컨텐츠 관리
+      summary: 베너/이벤트 수정
+      parameters:
+        - name: eventId
+          in: path
+          description: 베너/이벤트 아이디
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "소톡은 처음이지?"
+                screenType:
+                  $ref: '#/components/schemas/ScreenType'
+                eventType:
+                  $ref: '#/components/schemas/EventType'
+                link:
+                  type: string
+                  example: https://www.naver.com
+                always:
+                  type: boolean
+                  example: false
+                startAt:
+                  type: string
+                  example: "2024-11-19 12:00:00"
+                endAt:
+                  type: string
+                  example: "2024-11-20 23:59:59"
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                deleteFileIds:
+                  type: array
+                  items:
+                    type: integer
+                active:
+                  type: boolean
+                  example: true
+                content:
+                  type: string
+                  example: 처음 이용하는 선생님들을 위해 소톡 앱소개와 이용법을 알려줄게!
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventId:
+                    type: integer
+                    example: 1
+    delete:
+      tags:
+        - 컨텐츠 관리
+      summary: 베너/이벤트 삭제
+      parameters:
+        - name: eventId
+          in: path
+          description: 베너/이벤트 아이디
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/OK'
+
+  /user/{userId}/info:
+    get:
+      tags:
+        - 기타
+      parameters:
+        - name: userId
+          in: path
+          description: 유저 아이디
+          required: true
+          schema:
+            type: integer
+      summary: 사용자 정보 조회
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /combo/screenType:
+    get:
+      tags:
+        - 콤보
+      summary: 베너/이벤트 노출화면 목록 콤보
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  screenTypes:
+                    - screenType: BOARD
+                      screenTypeName: 게시판(홈)
+                    - screenType: MESSAGE
+                      screenTypeName: 메세지 목록
+                    - screenType: MY_PAGE
+                      screenTypeName: 마이페이지 목록
+                    - screenType: REGISTRATION
+                      screenTypeName: 회원가입
+
+  /combo/eventType:
+    get:
+      tags:
+        - 콤보
+      summary: 베너/이벤트 종류 목록 콤보
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  eventTypes:
+                    - eventType: ROLLING
+                      eventTypeName: 롤링배너
+                    - eventType: POPUP
+                      eventTypeName: 팝업
+                    - eventType: GUIDE
+                      eventTypeName: 가이드
+
+components:
+  schemas:
+    ScreenType:
+      type: string
+      enum:
+        - BOARD
+        - MESSAGE
+        - MY_PAGE
+        - REGISTRATION
+    EventType:
+      type: string
+      enum:
+        - ROLLING
+        - POPUP
+        - GUIDE
+    BoardType:
+      type: string
+      enum:
+        - SOSANG
+        - SAUP
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+          required:
+            - code
+            - message
+    BoardList:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          example: 1
+        contents:
+          type: array
+          items:
+            type: object
+            properties:
+              boardId:
+                type: integer
+                example: 1
+              boardTypeName:
+                type: string
+                example: "사업톡톡"
+              boardType:
+                type: string
+                example: "SAUP"
+              title:
+                type: string
+                example: "사업하는거 너무 힘드네요"
+              createdAt:
+                type: string
+                example: "2024-11-07 10:42:00"
+              nickname:
+                type: string
+                example: "익명의소톡"
+              likesCount:
+                type: integer
+                example: 11
+              commentsCount:
+                type: integer
+                example: 3
+              viewCount:
+                type: integer
+                example: 20
+              claimCount:
+                type: integer
+                example: 10
+              hidden:
+                type: boolean
+              deleted:
+                type: boolean
+    BoardDetail:
+      type: object
+      properties:
+        boardType:
+          type: string
+          example: "SOSANG"
+        boardTypeName:
+          type: string
+          example: "소상톡톡"
+        boardId:
+          type: integer
+          example: 1
+        author:
+          type: object
+          properties:
+            nickname:
+              type: string
+              example: "익명의소톡"
+            profileImageId:
+              type: integer
+              example: 12
+            filePath:
+              type: string
+              example: "imageFileUrl.com"
+            userId:
+              type: integer
+              example: 1
+        createdAt:
+          type: string
+          example: "2024-11-05 17:39:00"
+        title:
+          type: string
+          example: "K-Start up 에서 진행하는 지원 포탈"
+        content:
+          type: string
+          example: "우리 구에서는 저렴한 가격과 양질의..."
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              fileName:
+                type: string
+                example: "착한가격업소_지원사업_소개.doc"
+              fileId:
+                type: integer
+                example: 344
+              filePath:
+                type: string
+                example: "https://www.naver.com"
+        likesCount:
+          type: integer
+          example: 11
+        commentsCount:
+          type: integer
+          example: 2
+        viewCount:
+          type: integer
+          example: 11
+        claimCount:
+          type: integer
+          example: 15
+        deleted:
+          type: boolean
+        comments:
+          $ref: '#/components/schemas/Comments'
+    Comments:
+      type: array
+      items:
+        type: object
+        properties:
+          commentId:
+            type: integer
+            example: 1
+          nickname:
+            type: string
+            example: "익명의 소톡"
+          userId:
+            type: integer
+            example: 1
+          createdAt:
+            type: string
+            example: "2024-11-05 17:39:00"
+          content:
+            type: string
+            example: "먼데 나도 알려줘"
+          attachments:
+            type: array
+            items:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  example: "착한가격업소_지원사업_소개.doc"
+                fileId:
+                  type: integer
+                  example: 1
+                filePath:
+                  type: string
+                  example: "https://www.naver.com"
+          likesCount:
+            type: integer
+            example: 1
+          deleted:
+            type: boolean
+          claim:
+            type: boolean
+          comments:
+            type: array
+            items:
+              type: object
+              properties:
+                commentId:
+                  type: integer
+                  example: 1
+                nickname:
+                  type: string
+                  example: "익명의 소톡"
+                createdAt:
+                  type: string
+                  example: "2024-11-05 17:39:00"
+                content:
+                  type: string
+                  example: "먼데 나도 알려줘"
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      fileName:
+                        type: string
+                        example: "착한가격업소_지원사업_소개.doc"
+                      fileId:
+                        type: integer
+                        example: 1
+                      filePath:
+                        type: string
+                        example: "https://www.naver.com"
+                likesCount:
+                  type: integer
+                  example: 1
+                deleted:
+                  type: boolean
+
+    CommentList:
+      type: array
+      items:
+        type: object
+        properties:
+          totalCount:
+            type: integer
+            example: 15
+          contents:
+            type: array
+            items:
+              type: object
+              properties:
+                commentId:
+                  type: integer
+                  example: 5
+                parentCommentId:
+                  type: integer
+                  example: 1
+                nickname:
+                  type: string
+                  example: "글쓴사람 닉네임"
+                createdAt:
+                  type: string
+                  example: "2024-11-05 17:39:00"
+                content:
+                  type: string
+                  example: "먼데 나도 알려줘"
+                deleted:
+                  type: boolean
+                hidden:
+                  type: boolean
+                claimCount:
+                  type: integer
+                  example: 21
+                deletedBy:
+                  $ref: "#/components/schemas/DeletedBy"
+                comments:
+                  type: object
+                  properties:
+                    commentId:
+                      type: integer
+                      example: 5
+                    parentCommentId:
+                      type: integer
+                      example: 1
+                    nickname:
+                      type: string
+                      example: "글쓴사람 닉네임"
+                    createdAt:
+                      type: string
+                      example: "2024-11-05 17:39:00"
+                    content:
+                      type: string
+                      example: "먼데 나도 알려줘"
+                    deleted:
+                      type: boolean
+                    hidden:
+                      type: boolean
+                    claimCount:
+                      type: integer
+                      example: 21
+                    deletedBy:
+                      $ref: "#/components/schemas/DeletedBy"
+                board:
+                  type: object
+                  properties:
+                    boardTypeName:
+                      type: string
+                      example: "소상톡톡"
+                    boardType:
+                      $ref: "#/components/schemas/BoardType"
+                    title:
+                      type: string
+                      example: "사업하는거 너무 힘드네요."
+                    boardId:
+                      type: integer
+                      example: 1
+
+    User:
+      type: object
+      properties:
+        nickname:
+          type: string
+          example: 가난한 토깽이
+        profileImageId:
+          type: integer
+          example: 123
+        filePath:
+          type: string
+          example: "https://profile.url.com"
+        email:
+          type: string
+          example: "test@example.com"
+        createdAt:
+          type: string
+          description: 가입일
+          example: "2024-11-07 15:44"
+        lastLoginAt:
+          type: string
+          example: "2024-11-07 15:44"
+
+    UserList:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          example: 1
+        contents:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: integer
+                example: 1
+              email:
+                type: string
+                example: "test@test.com"
+              loginTypeName:
+                $ref: "#/components/schemas/LoginTypeName"
+              createdAt:
+                type: string
+                example: "2024-11-07 10:42:00"
+              existsBusinessFile:
+                type: boolean
+                example: true
+              roleName:
+                $ref: "#/components/schemas/RoleDisplayName"
+              businessTypeName:
+                type: string
+                example: "외식업"
+              regionName:
+                type: string
+                example: "서울"
+              approved:
+                type: boolean
+                example: true
+
+    UserDetail:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "test@example.com"
+        loginTypeName:
+          $ref: "#/components/schemas/LoginTypeName"
+        roleName:
+          $ref: "#/components/schemas/RoleDisplayName"
+        businessTypeName:
+          type: string
+          example: "외식업"
+        regionName:
+          type: string
+          example: "서울"
+        createdAt:
+          type: string
+          description: 가입일
+          example: "2024-11-07 15:44"
+        approved:
+          type: boolean
+        businessRegistration:
+          type: object
+          properties:
+            filePath:
+              type: string
+              example: "https://www.business.file.com"
+            fileName:
+              type: string
+              example: "사업장등록증_두리온.pdf"
+
+    LoginTypeName:
+      type: string
+      enum:
+        - "카카오"
+        - "이몌일"
+
+    Role:
+      type: string
+      enum:
+        - USER
+        - ADMIN
+    RoleDisplayName:
+      type: string
+      enum:
+        - "앱사용자"
+        - "관리자"
+    DeletedBy:
+      type: string
+      enum:
+        - "작성자 삭제"
+        - "관리자 삭제"
+
+    EventDetail:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "'소톡'은 처음이지?"
+        screenType:
+          type: string
+          example: "BOARD"
+        eventType:
+          type: string
+          example: "ROLLING"
+        startAt:
+          type: string
+          example: "2024-12-09 12:00:00"
+        endAt:
+          type: string
+          example: "2024-12-10 22:00:00"
+        active:
+          type: boolean
+          example: true
+        content:
+          type: string
+          example: "처음 이용하는 선생님들을 위해 소톡 앱소개와 이용법을 알려줄게!"
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              fileName:
+                type: string
+                example: "소톡은 처음이지.png"
+              fileId:
+                type: integer
+                example: 344
+              filePath:
+                type: string
+                example: "https://www.naver.com"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    OK:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              age:
+                type: integer
+          examples:
+            example1:
+              summary: E517
+              value:
+                errorCode: E517
+                errorMessage: 계산된 가격이 다릅니다.
+            example2:
+              summary: E202
+              value:
+                id: 2
+                name: Bob
+                role: ADMIN
+            example3:
+              summary: E203
+              value:
+                id: 3
+                name: Charlie
+                role: GUEST
+    Unauthorized:
+      description: 액세스 토큰이 비어 있거나 유효하지 않은 경우
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            value:
+              code: 401
+              message: unauthorized
+    Forbidden:
+      description: 권한이 없는 경우
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            value:
+              code: 403
+              message: forbidden
