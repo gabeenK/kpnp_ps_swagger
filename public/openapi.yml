@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: 소상톡톡 API
+  title: 소상톡톡 API1
   version: 0.0.1
 servers:
   - url: https://sotalk.example.com/api/v1
